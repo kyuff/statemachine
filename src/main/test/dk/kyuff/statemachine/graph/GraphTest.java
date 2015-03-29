@@ -3,60 +3,118 @@ package dk.kyuff.statemachine.graph;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Set;
+
 import static org.junit.Assert.*;
 
 public class GraphTest {
 
-    Graph<String, String> graph;
+    Graph<State, String> graph;
 
     @Before
     public void setUp() throws Exception {
-        graph = new Graph<>();
-    }
-
-    @Test
-    public void testAddVertex() throws Exception {
-        // setup
-
-        // execute
-        graph.addVertex("vertex");
-
-        // verify
-        assertTrue(graph.isVertex("vertex"));
-        assertFalse(graph.isVertex("other"));
-        assertEquals(1, graph.getVertexCount());
-    }
-
-    @Test
-    public void testAddEdge() throws Exception {
-        // setup
-        graph.addVertex("v1");
-        graph.addVertex("v2");
-        graph.addVertex("v3");
-
-        // execute
-        graph.addEdge("v1", "v2", "Edge");
-
-        // verify
-        assertTrue(graph.hasEdge("v1", "v2"));
-        assertFalse(graph.hasEdge("v1", "v3"));
-        assertFalse(graph.hasEdge("v2", "v3"));
-
+        graph = new Graph<>(State.class);
     }
 
     @Test
     public void testGetEdge() throws Exception {
         // setup
-        graph.addVertex("v1");
-        graph.addVertex("v2");
-        graph.addVertex("v3");
-        graph.addEdge("v1", "v2", "edge");
+        graph.addEdge(State.INITIAL, State.WORKING, "edge value");
 
         // execute
-        String edge = graph.getEdge("v1", "v2");
+        String edge = graph.getEdge(State.INITIAL, State.WORKING);
 
         // verify
-        assertEquals("edge", edge);
+        assertEquals("edge value", edge);
     }
 
+    @Test
+    public void testGetEdgeNull() throws Exception {
+        // setup
+        graph.addEdge(State.INITIAL, State.WORKING, "edge value");
+
+        // execute
+        String edge = graph.getEdge(State.DONE, State.WORKING);
+
+        // verify
+        assertNull(edge);
+    }
+
+    @Test
+    public void testGetEdges() throws Exception {
+        // setup
+        graph.addEdge(State.INITIAL, State.IMPEDED, "initial to impeded");
+        graph.addEdge(State.INITIAL, State.WORKING, "initial to working");
+        graph.addEdge(State.IMPEDED, State.WORKING, "impeded to working");
+
+        // execute
+        Set<String> edges = graph.getEdges(State.INITIAL);
+
+        // verify
+        assertEquals(2, edges.size());
+        assertTrue(edges.contains("initial to impeded"));
+        assertTrue(edges.contains("initial to working"));
+    }
+
+
+    @Test
+    public void testGetEdgesNull() throws Exception {
+        // setup
+        graph.addEdge(State.INITIAL, State.IMPEDED, "initial to impeded");
+        graph.addEdge(State.INITIAL, State.WORKING, "initial to working");
+        graph.addEdge(State.IMPEDED, State.WORKING, "impeded to working");
+
+        // execute
+        Set<String> edges = graph.getEdges(State.DONE);
+
+        // verify
+        assertNotNull(edges);
+        assertEquals(0, edges.size());
+    }
+
+    @Test
+    public void testGetEdgesNullValue() throws Exception {
+        // setup
+        graph.addEdge(State.INITIAL, State.IMPEDED, null);
+        graph.addEdge(State.INITIAL, State.WORKING, null);
+        graph.addEdge(State.IMPEDED, State.WORKING, "impeded to working");
+
+        // execute
+        Set<String> edges = graph.getEdges(State.INITIAL);
+
+        // verify
+        assertNotNull(edges);
+        assertEquals(1, edges.size()); // Sets only holds one null value
+    }
+
+    @Test
+    public void testGetAdjacent() throws Exception {
+        // setup
+        graph.addEdge(State.INITIAL, State.IMPEDED, "initial to impeded");
+        graph.addEdge(State.INITIAL, State.WORKING, "initial to working");
+        graph.addEdge(State.IMPEDED, State.DONE, "impeded to done");
+
+        // execute
+        Set<State> adjacent = graph.getAdjacent(State.INITIAL);
+
+        // verify
+        assertEquals(2, adjacent.size());
+        assertTrue(adjacent.contains(State.IMPEDED));
+        assertTrue(adjacent.contains(State.WORKING));
+    }
+
+    @Test
+    public void testGetAdjacentNull() throws Exception {
+        // setup
+        graph.addEdge(State.INITIAL, State.IMPEDED, "initial to impeded");
+        graph.addEdge(State.INITIAL, State.WORKING, "initial to working");
+        graph.addEdge(State.IMPEDED, State.DONE, "impeded to done");
+
+        // execute
+        Set<State> adjacent = graph.getAdjacent(State.DONE);
+
+        // verify
+        assertNotNull(adjacent);
+        assertEquals(0, adjacent.size());
+    }
 }
