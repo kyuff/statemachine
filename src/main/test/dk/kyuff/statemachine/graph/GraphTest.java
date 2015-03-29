@@ -117,4 +117,23 @@ public class GraphTest {
         assertNotNull(adjacent);
         assertEquals(0, adjacent.size());
     }
+
+    @Test
+    public void testHasEdge() throws Exception {
+        // setup
+        graph.addEdge(State.INITIAL, State.IMPEDED, "initial to impeded");
+        graph.addEdge(State.INITIAL, State.WORKING, "initial to working");
+        graph.addEdge(State.IMPEDED, State.DONE, "impeded to done");
+
+        // execute and verify
+        assertTrue(graph.hasEdge(State.INITIAL, State.IMPEDED));
+        assertTrue(graph.hasEdge(State.INITIAL, State.WORKING));
+        assertTrue(graph.hasEdge(State.IMPEDED, State.DONE));
+
+        assertFalse(graph.hasEdge(State.IMPEDED, State.INITIAL));
+        assertFalse(graph.hasEdge(State.IMPEDED, State.WORKING));
+        assertFalse(graph.hasEdge(State.DONE, State.IMPEDED));
+        assertFalse(graph.hasEdge(State.INITIAL, State.INITIAL));
+
+    }
 }

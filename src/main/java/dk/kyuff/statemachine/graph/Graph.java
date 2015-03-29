@@ -44,12 +44,20 @@ public class Graph<V extends Enum<V>, E> {
     }
 
     public E getEdge(V v, V w) {
-        Edge<E> edge = matrix.get(v.ordinal()).get(w.ordinal());
+        Edge<E> edge = getEdgeHolder(v, w);
         if (edge != null) {
             return edge.value;
         } else {
             return null;
         }
+    }
+
+    public boolean hasEdge(V v, V w) {
+        return getEdgeHolder(v, w) != null;
+    }
+
+    private Edge<E> getEdgeHolder(V v, V w) {
+        return matrix.get(v.ordinal()).get(w.ordinal());
     }
 
 
