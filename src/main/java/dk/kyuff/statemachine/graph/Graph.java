@@ -1,6 +1,7 @@
 package dk.kyuff.statemachine.graph;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -32,16 +33,18 @@ public class Graph<V extends Enum<V>, E> {
 
     public Graph(Class<V> enumClass) {
         this.enumClass = enumClass;
-        matrix = new ArrayList<>();
         int size = enumClass.getEnumConstants().length;
-        for (int i = 0; i < size; i++) {
-            List<Edge<E>> edges = new ArrayList<>();
-            for (int j = 0; j < size; j++) {
-                edges.add(null);
-            }
-            matrix.add(edges);
-        }
+        matrix = list(size, () -> list(size, () -> (Edge<E>) null));
     }
+
+    private <T> List<T> list(int size, Supplier<T> supplier) {
+        List<T> result = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            result.add(supplier.get());
+        }
+        return result;
+    }
+
 
     public E getEdge(V v, V w) {
         Edge<E> edge = getEdgeHolder(v, w);
