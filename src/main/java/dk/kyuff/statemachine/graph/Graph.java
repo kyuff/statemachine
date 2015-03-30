@@ -1,6 +1,9 @@
 package dk.kyuff.statemachine.graph;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -15,16 +18,6 @@ public class Graph<V extends Enum<V>, E> {
 
     private final Class<V> enumClass;
 
-    private static class Edge<E> {
-
-        E value;
-
-        public E getValue() {
-            return value;
-        }
-
-    }
-
     /**
      * Double list where each coordinate indicates an Edge.
      * (3,1) != null indicates an Edge from Enum.ordinal() = 3 to Enum.ordinal() = 1.
@@ -34,7 +27,7 @@ public class Graph<V extends Enum<V>, E> {
     public Graph(Class<V> enumClass) {
         this.enumClass = enumClass;
         int size = enumClass.getEnumConstants().length;
-        matrix = list(size, () -> list(size, () -> (Edge<E>) null));
+        matrix = list(size, () -> list(size, Edge::new));
     }
 
     private <T> List<T> list(int size, Supplier<T> supplier) {
@@ -48,15 +41,15 @@ public class Graph<V extends Enum<V>, E> {
 
     public E getEdge(V v, V w) {
         Edge<E> edge = getEdgeHolder(v, w);
-        if (edge != null) {
-            return edge.value;
+        if (edge.isDefined()) {
+            return edge.getValue();
         } else {
             return null;
         }
     }
 
     public boolean hasEdge(V v, V w) {
-        return getEdgeHolder(v, w) != null;
+        return getEdgeHolder(v, w).isDefined();
     }
 
     private Edge<E> getEdgeHolder(V v, V w) {
@@ -66,27 +59,45 @@ public class Graph<V extends Enum<V>, E> {
 
     public Set<E> getEdges(V v) {
         return matrix.get(v.ordinal()).stream()
-                .filter(Objects::nonNull)
+                .filter(Edge::isDefined)
                 .map(Edge::getValue)
                 .collect(Collectors.toSet());
     }
 
     public void addEdge(V v, V w, E edgeValue) {
-        Edge edge = new Edge();
-        edge.value = edgeValue;
-        matrix.get(v.ordinal()).set(w.ordinal(), edge);
+        Edge edge = getEdgeHolder(v, w);
+        edge.setValue(edgeValue);
     }
 
     public Set<V> getAdjacent(V v) {
         EnumSet<V> result = EnumSet.noneOf(enumClass);
         List<Edge<E>> edges = matrix.get(v.ordinal());
         for (int i = 0; i < edges.size(); i++) {
-            if (edges.get(i) != null) {
+            if (edges.get(i).isDefined()) {
                 result.add(enumClass.getEnumConstants()[i]);
             }
         }
         return result;
     }
 
-
+    public boolean hasPath(V v, V w) {
+        V current = v;
+        Set<V> visited = EnumSet.noneOf(enumClass);
+        Set<V> work = EnumSet.of(current);
+        while (!work.isEmpty()) {
+            if (!visited.contains(current)) {
+                Set<V> adjacent = getAdjacent(current);
+                if (current == w) {
+                    return true;
+                }
+                work.addAll(adjacent);
+            }
+            work.remove(current);
+            visited.add(current);
+            if (!work.isEmpty()) {
+                current = work.iterator().next();
+            }
+        }
+        return false;
+    }
 }

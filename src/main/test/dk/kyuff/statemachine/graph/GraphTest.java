@@ -17,6 +17,38 @@ public class GraphTest {
     }
 
     @Test
+    public void testHasPath() {
+        // setup
+        graph.addEdge(State.INITIAL, State.WORKING, "e1");
+        graph.addEdge(State.WORKING, State.TESTING, "e2");
+        graph.addEdge(State.TESTING, State.INITIAL, "loop");
+        graph.addEdge(State.TESTING, State.DONE, "e3");
+
+        // execute
+        boolean hasPath = graph.hasPath(State.INITIAL, State.DONE);
+
+        // verify
+        assertTrue(hasPath);
+    }
+
+
+    @Test
+    public void testHasPathNo() {
+        // setup
+        graph.addEdge(State.INITIAL, State.WORKING, "e1");
+        graph.addEdge(State.WORKING, State.TESTING, "e2");
+        graph.addEdge(State.TESTING, State.WORKING, "loop");
+        graph.addEdge(State.TESTING, State.DONE, "e3");
+        graph.addEdge(State.WORKING, State.DONE, "e4");
+
+        // execute
+        boolean hasPath = graph.hasPath(State.WORKING, State.INITIAL);
+
+        // verify
+        assertFalse(hasPath);
+    }
+
+    @Test
     public void testGetEdge() throws Exception {
         // setup
         graph.addEdge(State.INITIAL, State.WORKING, "edge value");
